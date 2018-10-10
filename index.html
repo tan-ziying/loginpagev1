@@ -6,7 +6,11 @@
 
 <body>
 	<div id="app">
-		<facebook-login class="button" appId="275263693320314" @login="onLogin" @logout="onLogout" @sdk-loaded="sdkLoaded">
+		<facebook-login class="button" 
+      appId="275263693320314" 
+      @login="onLogin" 
+      @logout="onLogout" 
+      @sdk-loaded="sdkLoaded">
 		</facebook-login>
 		<img v-if="!isConnected" :src="loginImage" class="login">
 		<div v-if="isConnected" class="information">
@@ -29,51 +33,99 @@
 	</div>
 
 	<script src="https://unpkg.com/vue"></script>
-  <script src="https://unpkg.com/facebook-login-vue/dist/facebook-login.js"></script>
+
 	<script>
-	  
+	 import facebookLogin from '../../src/index.js' 
+   import idImage from './id.svg' 
+   import loginImage from './login.svg' 
+   import mailImage from './mail.svg' import faceImage from './face.svg'
     
 		var app = new Vue({
       el:"#app",
       data: {
-       counter: 0, 
-       databaseUrl: 'https://bt3103-week4.firebaseio.com/trial.json',
-      },
-	  mounted: function () { //Will start at zero if you don't update on init
-        this.update();
-      },
-    methods:{
-        increment: function(){
-          this.counter++
-          this.setRemoteCounter(this.counter)
-        },
-        reset: function(){
-          // Post to the counter to set it to zero. 
-          this.counter = 0
-		      this.setRemoteCounter(this.counter)          
-        },
-				 setRemoteCounter: async function(newVal){ 
-           // Post to the counter to set it to zero. 
-           let res = await fetch(this.databaseUrl, { 
-              method:'put', 
-              body: JSON.stringify({'counter':newVal})
-				    }) 
-          let theJson = await res.json()
-          console.log(theJson)
-         },
-        update: async function() {
-          let res = await fetch(this.databaseUrl) 
-          let theJson = await res.json()
-          console.log("Updated remote counter",theJson)
-		      if(theJson && theJson.counter) {
-            console.log("here")
-              this.counter = theJson.counter
-          }
-			      
+		    return { 
+          idImage, loginImage, mailImage, faceImage, 
+          isConnected: false, 
+          name: '', 
+          email: '', 
+          personalID: '', 
+          FB: undefined
         }
-      }
+      
+
+
+		
+      },
+	    components: { facebookLogin }, 
+      methods: { 
+        getUserData() { 
+          this.FB.api('/me', 'GET', { fields: 'id,name,email' }, 
+          userInformation => { 
+            this.personalID = userInformation.id; 
+            this.email = userInformation.email; 
+            this.name = userInformation.name; 
+            } 
+          ) 
+        }, 
+        sdkLoaded(payload){ 
+          this.isConnected = payload.isConnected 
+          this.FB = payload.FB 
+          if (this.isConnected) this.getUserData() 
+        }, 
+        onLogin() { 
+          this.isConnected = true 
+          this.getUserData() 
+        }, 
+        onLogout() { 
+          this.isConnected = false; 
+        } } 
+	  
+    
+				 
     })
 	</script>
+<style>
+	#app {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start
+	}
+
+	.information {
+		margin-top: 100px;
+		margin: auto;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.well {
+		background-color: rgb(191, 238, 229);
+		margin: auto;
+		padding: 50px 50px;
+		;
+		border-radius: 20px;
+		/* display:inline-block; */
+	}
+
+	.login {
+		width: 200px;
+		margin: auto;
+	}
+
+	.list-item:first-child {
+		margin: 0;
+	}
+
+	.list-item {
+		display: flex;
+		align-items: center;
+		margin-top: 20px;
+	}
+
+	.button {
+		margin: auto;
+	}
+</style>
 </body>
 
 </html>
